@@ -34,7 +34,7 @@ let exerciseSchema = new Schema({
 
 let userSchema = new Schema({
   username: { type: String, required: true },
-  exerciseLog: [exerciseSchema],
+  log: [exerciseSchema],
 });
 
 let Exercise = model("Exercise", exerciseSchema);
@@ -83,7 +83,7 @@ app.post(
     }
     User.findByIdAndUpdate(
       inputId,
-      { $push: { exerciseLog: newExercise } },
+      { $push: { log: newExercise } },
       { new: true },
       (error, updatedUser) => {
         if (!error && updatedUser != undefined) {
@@ -101,10 +101,14 @@ app.post(
   }
 );
 
+let logsObj = {};
+
 app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
-      let logsObj = result;
+      let counter = parseInt(result.log.length);
+      logsObj["result"] = result;
+      logsObj["count"] = counter;
       res.json(logsObj);
     } else {
       res.json("Record NOT FOUND!!!");
