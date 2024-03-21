@@ -105,8 +105,6 @@ app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
       let logsObj = result;
-      let counter = result.exerciseLog.length;
-      logsObj["count"] = counter;
       res.json(logsObj);
     } else {
       res.json("Record NOT FOUND!!!");
