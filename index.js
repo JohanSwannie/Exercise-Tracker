@@ -133,7 +133,9 @@ app.get("/api/users/:_id/logs", (req, res) => {
   } else {
     User.find((error, result) => {
       if (!error) {
+        let logCount = parseInt(result.log.count);
         let collection = result;
+        collection["count"] = logCount;
         res.json(collection);
       }
     });
