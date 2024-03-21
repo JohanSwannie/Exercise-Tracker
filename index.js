@@ -101,12 +101,10 @@ app.post(
   }
 );
 
-let logsObj = {};
-
 app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
-      logsObj = result;
+      let logsObj = result;
       logsObj["count"] = result.exerciseLog.length;
       res.json(logsObj);
     } else {
