@@ -125,6 +125,8 @@ app.get("/api/users/:_id/logs", (req, res) => {
         if (req.query.limit) {
           logsObj.log = logsObj.log.slice(0, req.query.limit);
         }
+        let logLength = result.log.length;
+        logsObj["count"] = logLength;
         res.json(logsObj);
       } else {
         res.json("Record NOT FOUND!!!");
@@ -133,9 +135,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
   } else {
     User.find((error, result) => {
       if (!error) {
-        let logCount = parseInt(result.log.count);
         let collection = result;
-        collection["count"] = logCount;
         res.json(collection);
       }
     });
