@@ -103,7 +103,7 @@ app.post(
 
 let logsObj = {};
 
-app.get("/api/users/logs", (req, res) => {
+app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
       logsObj = result;
