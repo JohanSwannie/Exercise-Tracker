@@ -106,8 +106,8 @@ let logsObj = {};
 app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
-      logsObj["log"] = result;
-      logsObj["count"] = 2;
+      logsObj["records"] = result;
+      logsObj["count"] = 4;
       res.json(logsObj);
     } else {
       res.json("Record NOT FOUND!!!");
