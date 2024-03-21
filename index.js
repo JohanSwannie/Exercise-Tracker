@@ -102,33 +102,43 @@ app.post(
 );
 
 app.get("/api/users/:_id/logs", (req, res) => {
-  User.findById(req.query.userId, (error, result) => {
-    if (!error) {
-      let logsObj = result;
-      if (req.query.from || req.query.to) {
-        let fromDate = new Date(0);
-        let toDate = new Date();
-        if (req.query.from) {
-          fromDate = new Date(req.query.from);
+  if (req.query.userId) {
+    console.log("YES YES YES MY OU MAAT!!!!");
+    User.findById(req.query.userId, (error, result) => {
+      if (!error) {
+        let logsObj = result;
+        if (req.query.from || req.query.to) {
+          let fromDate = new Date(0);
+          let toDate = new Date();
+          if (req.query.from) {
+            fromDate = new Date(req.query.from);
+          }
+          if (req.query.to) {
+            toDate = new Date(req.query.to);
+          }
+          fromDate = fromDate.getTime();
+          toDate = toDate.getTime();
+          logsObj.log = logsObj.log.filter((exercise) => {
+            let exerciseDate = new Date(exercise.date).getTime();
+            return exerciseDate >= fromDate && exerciseDate <= toDate;
+          });
         }
-        if (req.query.to) {
-          toDate = new Date(req.query.to);
+        if (req.query.limit) {
+          logsObj.log = logsObj.log.slice(0, req.query.limit);
         }
-        fromDate = fromDate.getTime();
-        toDate = toDate.getTime();
-        logsObj.log = logsObj.log.filter((exercise) => {
-          let exerciseDate = new Date(exercise.date).getTime();
-          return exerciseDate >= fromDate && exerciseDate <= toDate;
-        });
+        res.json(logsObj);
+      } else {
+        res.json("Record NOT FOUND!!!");
       }
-      if (req.query.limit) {
-        logsObj.log = logsObj.log.slice(0, req.query.limit);
+    });
+  } else {
+    User.find((error, result) => {
+      if (!error) {
+        let collection = result;
+        res.json(collection);
       }
-      res.json(logsObj);
-    } else {
-      res.json("Record NOT FOUND!!!");
-    }
-  });
+    });
+  }
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
