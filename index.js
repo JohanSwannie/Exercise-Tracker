@@ -87,11 +87,11 @@ app.post(
       { new: true },
       (error, updatedUser) => {
         if (!error && updatedUser != undefined) {
-          exerciseObj["_id"] = req.body._id;
+          exerciseObj["_id"] = inputId;
           exerciseObj["username"] = updatedUser.username;
-          exerciseObj["date"] = new Date(newExercise.date).toDateString();
           exerciseObj["description"] = newExercise.description;
           exerciseObj["duration"] = newExercise.duration;
+          exerciseObj["date"] = new Date(newExercise.date).toDateString();
           res.json(exerciseObj);
         } else {
           res.json("User to be updated NOT FOUND!");
