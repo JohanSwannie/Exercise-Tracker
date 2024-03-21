@@ -72,6 +72,7 @@ app.post(
   "/api/users/:_id/exercises",
   bodyParser.urlencoded({ extended: false }),
   (req, res) => {
+    let inputId = req.params._id;
     let newExercise = new Exercise({
       description: req.body.description,
       duration: parseInt(req.body.duration),
@@ -81,17 +82,19 @@ app.post(
       newExercise.date = new Date().toISOString().substring(0, 10);
     }
     User.findByIdAndUpdate(
-      req.body._id,
+      inputId,
       { $push: { exerciseLog: newExercise } },
       { new: true },
       (error, updatedUser) => {
-        if (!error) {
+        if (!error && updatedUser != undefined) {
           exerciseObj["_id"] = req.body._id;
           exerciseObj["username"] = updatedUser.username;
           exerciseObj["date"] = new Date(newExercise.date).toDateString();
           exerciseObj["description"] = newExercise.description;
           exerciseObj["duration"] = newExercise.duration;
           res.json(exerciseObj);
+        } else {
+          res.json("User to be updated NOT FOUND!");
         }
       }
     );
