@@ -101,6 +101,21 @@ app.post(
   }
 );
 
+let logsObj = {};
+
+app.get("/api/users/:_id/logs", (req, res) => {
+  let logId = req.params._id;
+  User.findById(logId, (error, result) => {
+    if (!error) {
+      logsObj = result;
+      logsObj["count"] = result.exerciseLog.length;
+      res.json(logsObj);
+    } else {
+      res.json("Record NOT FOUND!!!");
+    }
+  });
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
