@@ -141,6 +141,19 @@ app.get("/api/users/:_id/logs", (req, res) => {
   }
 });
 
+let countObj = {};
+
+app.get("/api/users/:_id/logs", (req, res) => {
+  User.findById(req.query.useId, (error, result) => {
+    if (!error) {
+      countObj["count"] = result.log.length;
+      res.json(countObj);
+    } else {
+      res.json("User ID not found!!!");
+    }
+  });
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
