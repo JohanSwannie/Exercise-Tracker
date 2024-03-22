@@ -102,53 +102,32 @@ app.post(
 );
 
 app.get("/api/users/:_id/logs", (req, res) => {
-  if (req.query.userId) {
-    User.findById(req.query.userId, (error, result) => {
-      if (!error) {
-        let logsObj = result;
-        if (req.query.from || req.query.to) {
-          let fromDate = new Date(0);
-          let toDate = new Date();
-          if (req.query.from) {
-            fromDate = new Date(req.query.from);
-          }
-          if (req.query.to) {
-            toDate = new Date(req.query.to);
-          }
-          fromDate = fromDate.getTime();
-          toDate = toDate.getTime();
-          logsObj.log = logsObj.log.filter((exercise) => {
-            let exerciseDate = new Date(exercise.date).getTime();
-            return exerciseDate >= fromDate && exerciseDate <= toDate;
-          });
-        }
-        if (req.query.limit) {
-          logsObj.log = logsObj.log.slice(0, req.query.limit);
-        }
-        res.json(logsObj);
-      } else {
-        res.json("Record NOT FOUND!!!");
-      }
-    });
-  } else {
-    User.find((error, result) => {
-      if (!error) {
-        let collection = result;
-        res.json(collection);
-      }
-    });
-  }
-});
-
-let countObj = {};
-
-app.get("/api/users/:_id/logs", (req, res) => {
-  User.findById(req.query.useId, (error, result) => {
+  User.findById(req.query.userId, (error, result) => {
     if (!error) {
-      countObj["count"] = result.log.length;
-      res.json(countObj);
+      let logsObj = result;
+      if (req.query.from || req.query.to) {
+        let fromDate = new Date(0);
+        let toDate = new Date();
+        if (req.query.from) {
+          fromDate = new Date(req.query.from);
+        }
+        if (req.query.to) {
+          toDate = new Date(req.query.to);
+        }
+        fromDate = fromDate.getTime();
+        toDate = toDate.getTime();
+        logsObj.log = logsObj.log.filter((exercise) => {
+          let exerciseDate = new Date(exercise.date).getTime();
+          return exerciseDate >= fromDate && exerciseDate <= toDate;
+        });
+      }
+      if (req.query.limit) {
+        logsObj.log = logsObj.log.slice(0, req.query.limit);
+      }
+      logsObj["count"] = result.log.length;
+      res.json(logsObj);
     } else {
-      res.json("User ID not found!!!");
+      res.json("Record NOT FOUND!!!");
     }
   });
 });
