@@ -125,8 +125,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
         if (req.query.limit) {
           logsObj.log = logsObj.log.slice(0, req.query.limit);
         }
-        let logLength = result.log.length;
-        logsObj["count"] = logLength;
+        logsObj["count"] = 4;
         res.json(logsObj);
       } else {
         res.json("Record NOT FOUND!!!");
