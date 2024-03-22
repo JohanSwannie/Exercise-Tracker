@@ -101,6 +101,8 @@ app.post(
   }
 );
 
+let showObj = [];
+
 app.get("/api/users/:_id/logs", (req, res) => {
   User.findById(req.query.userId, (error, result) => {
     if (!error) {
@@ -124,8 +126,12 @@ app.get("/api/users/:_id/logs", (req, res) => {
       if (req.query.limit) {
         logsObj.log = logsObj.log.slice(0, req.query.limit);
       }
-      logsObj["count"] = result.log.length;
-      res.json(logsObj);
+      let countObj = {};
+      countObj["count"] = result.log.length;
+      showObj.push(logsObj);
+      showObj.push(countObj);
+      console.log(showObj);
+      res.json(showObj);
     } else {
       res.json("Record NOT FOUND!!!");
     }
