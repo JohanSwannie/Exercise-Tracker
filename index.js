@@ -101,27 +101,44 @@ app.post(
 
 app.get("/api/users/:_id/logs", (req, res) => {
   let userId = req.params._id;
+  let userObj = {};
+  let limitParm = req.query.limit;
+  let toParm = req.query.to;
+  let fromParm = req.query.from;
+  limitParm = limitParm ? parseInt(limitParm) : limitParm;
+  let queryObj = { userId: userId };
+  if (fromParm || toParm) {
+    queryObj.date = {};
+    if (fromParm) {
+      queryObj.date["$gte"] = fromParm;
+    }
+    if (toParm) {
+      queryObj.date["$lte"] = toParm;
+    }
+  }
   User.findById(userId, (error, userFound) => {
     if (error) {
       console.log("There is an error finding the user", error);
     }
     let username = userFound.username;
     userObj = { _id: userFound._id, username: username };
-    Exercise.find({ userId: userId }, (error, exercises) => {
-      if (error) {
-        console.log(error);
-      }
-      let result = exercises.map((exercise) => {
-        return {
-          description: exercise.description,
-          duration: exercise.duration,
-          date: exercise.date,
-        };
+    Exercise.find(queryObj)
+      .limit(limitParm)
+      .exec((error, exercises) => {
+        if (error) {
+          console.log(error);
+        }
+        let result = exercises.map((exercise) => {
+          return {
+            description: exercise.description,
+            duration: exercise.duration,
+            date: exercise.date,
+          };
+        });
+        userObj.log = result;
+        userObj.count = result.length;
+        res.json(userObj);
       });
-      userObj.log = result;
-      userObj.count = result.length;
-      res.json(userObj);
-    });
   });
 });
 
