@@ -137,9 +137,9 @@ app.get("/api/users/:_id/logs", (req, res) => {
         }
         let result = exercises.map((exercise) => {
           return {
-            description: exercise.description,
-            duration: exercise.duration,
-            date: exercise.date,
+            description: exercise.description.toString(),
+            duration: Number(exercise.duration),
+            date: exercise.date.toString(),
           };
         });
         userObj.log = result;
