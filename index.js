@@ -63,10 +63,12 @@ app.get("/api/users", (req, res) => {
     if (error) {
       console.log("Error finding the User!!!");
     } else {
+      let resultArray = [];
       let resultObj = {};
       resultObj.username = result.username;
       resultObj.id = result._id;
-      res.json(resultObj);
+      resultArray.push(resultObj);
+      res.json(resultArray);
     }
   });
 });
