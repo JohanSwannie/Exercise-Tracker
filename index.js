@@ -27,7 +27,6 @@ app.get("/", (req, res) => {
 });
 
 let exerciseSchema = new Schema({
-  userId: String,
   description: { type: String, required: true },
   duration: { type: Number, required: true },
   date: String,
@@ -42,114 +41,101 @@ let Exercise = model("Exercise", exerciseSchema);
 
 let User = model("User", userSchema);
 
-app.use(bodyParser.urlencoded({ extended: false }));
+let userObj = {};
 
-app.use(bodyParser.json());
-
-app.post("/api/users", (req, res) => {
-  const user = new User({
-    username: req.body.username,
-  });
-  user.save((error, user) => {
-    if (error) {
-      res.status(500).send("{error:" + error + " }");
-    }
-    res.send({
-      user: user,
+app.post(
+  "/api/users",
+  bodyParser.urlencoded({ extended: false }),
+  (req, res) => {
+    let newUser = new User({ username: req.body.username });
+    newUser.save((error, savedUser) => {
+      if (!error) {
+        userObj["username"] = savedUser.username;
+        userObj["_id"] = savedUser.id;
+        res.json(userObj);
+      }
     });
-  });
-});
+  }
+);
 
-app.post("/api/users/:_id/exercises", (req, res) => {
-  const exercise = new Exercise({
-    userId: req.params["_id"],
-    description: req.body.description,
-    duration: parseInt(req.body.duration),
-    date: new Date(req.body.date),
-  });
-  exercise.save(function (error, exercise) {
-    if (error) {
-      res.status(500).send("{error:" + error + " }");
+app.get("/api/users", (req, res) => {
+  User.find({}, (error, result) => {
+    if (!error) {
+      res.json(result);
     }
-    res.send({
-      exercise: exercise,
-    });
   });
 });
 
-app.get("/api/users/:_id/logs", (req, res, next) => {
-  if (!req.query.userId) {
-    res.send({ error: "userId must be present" });
-  }
-  const userId = req.query.userId;
-  let from = req.query.from;
-  let to = req.query.to;
-  let limit = req.query.limit;
-  const limitOptions = {};
-  if (limit) limitOptions.limit = limit;
-  if (from && to) {
-    Exercise.find({
-      $and: [
-        { userId: userId },
-        { date: { $gt: new Date(from) } },
-        { date: { $lt: new Date(to) } },
-      ],
-    })
-      .limit(parseInt(limit))
-      .exec((err, exercises) => {
-        if (err) {
-          return res.send({ error: err });
-        }
-        return res.send({ results: exercises });
-      });
-  } else if (from) {
-    Exercise.find({
-      $and: [{ userId: userId }, { date: { $gt: new Date(from) } }],
-    })
-      .limit(parseInt(limit))
-      .exec((err, exercises) => {
-        if (err) {
-          return res.send({ error: err });
-        }
-        return res.send({ results: exercises });
-      });
-  } else if (to) {
-    Exercise.find({
-      $and: [{ userId: userId }, { date: { $lt: new Date(to) } }],
-    })
-      .limit(parseInt(limit))
-      .exec((err, exercises) => {
-        if (err) {
-          return res.send({ error: err });
-        }
-        return res.send({ results: exercises });
-      });
-  } else {
-    Exercise.find({ userId: userId })
-      .limit(parseInt(limit))
-      .exec((err, exercises) => {
-        if (err) {
-          return res.send({ error: err });
-        }
-        return res.send({ results: exercises });
-      });
-  }
-});
+let exerciseObj = {};
 
-app.use((req, res, next) => {
-  return next({ status: 404, message: "not found" });
-});
-app.use((err, req, res, next) => {
-  let errCode, errMessage;
-  if (err.errors) {
-    errCode = 400; // bad request
-    const keys = Object.keys(err.errors);
-    errMessage = err.errors[keys[0]].message;
-  } else {
-    errCode = err.status || 500;
-    errMessage = err.message || "Internal Server Error";
+app.post(
+  "/api/users/:_id/exercises",
+  bodyParser.urlencoded({ extended: false }),
+  (req, res) => {
+    let inputId = req.params._id;
+    let newExercise = new Exercise({
+      description: req.body.description,
+      duration: parseInt(req.body.duration),
+      date: req.body.date,
+    });
+    if (newExercise.date === "") {
+      newExercise.date = new Date().toISOString().substring(0, 10);
+    }
+    User.findByIdAndUpdate(
+      inputId,
+      { $push: { log: newExercise } },
+      { new: true },
+      (error, updatedUser) => {
+        if (!error && updatedUser != undefined) {
+          exerciseObj["_id"] = inputId;
+          exerciseObj["username"] = updatedUser.username;
+          exerciseObj["description"] = newExercise.description;
+          exerciseObj["duration"] = newExercise.duration;
+          exerciseObj["date"] = new Date(newExercise.date).toDateString();
+          res.json(exerciseObj);
+        } else {
+          res.json("User to be updated NOT FOUND!");
+        }
+      }
+    );
   }
-  res.status(errCode).type("txt").send(errMessage);
+);
+
+let showObj = [];
+
+app.get("/api/users/:_id/logs", (req, res) => {
+  User.findById(req.query.userId, (error, result) => {
+    if (!error) {
+      let logsObj = result;
+      if (req.query.from || req.query.to) {
+        let fromDate = new Date(0);
+        let toDate = new Date();
+        if (req.query.from) {
+          fromDate = new Date(req.query.from);
+        }
+        if (req.query.to) {
+          toDate = new Date(req.query.to);
+        }
+        fromDate = fromDate.getTime();
+        toDate = toDate.getTime();
+        logsObj.log = logsObj.log.filter((exercise) => {
+          let exerciseDate = new Date(exercise.date).getTime();
+          return exerciseDate >= fromDate && exerciseDate <= toDate;
+        });
+      }
+      if (req.query.limit) {
+        logsObj.log = logsObj.log.slice(0, req.query.limit);
+      }
+      let countObj = {};
+      countObj["count"] = logsObj.log.length;
+      showObj.push(logsObj);
+      showObj.push(countObj);
+      console.log(showObj);
+      res.json(showObj);
+    } else {
+      res.json("Record NOT FOUND!!!");
+    }
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
