@@ -35,7 +35,6 @@ let exerciseSchema = new Schema({
 
 let userSchema = new Schema({
   username: { type: String, required: true },
-  log: [exerciseSchema],
 });
 
 let Exercise = model("Exercise", exerciseSchema);
@@ -76,9 +75,12 @@ app.post(
       userId: userId,
       description: req.body.description,
       duration: parseInt(req.body.duration),
+      date: req.body.date,
     };
     if (req.body.date != "") {
       exerciseObj.date = new Date(req.body.date).toISOString().substring(0, 10);
+    } else {
+      exerciseObj.date = new Date().toISOString().substring(0, 10);
     }
     let newExercise = new Exercise(exerciseObj);
     User.findById(userId, (error, userFound) => {
@@ -101,7 +103,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
   let userId = req.params._id;
   User.findById(userId, (error, userFound) => {
     if (error) {
-      console.log(error);
+      console.log("There is an error finding the user", error);
     }
     let username = userFound.username;
     userObj = { _id: userFound._id, username: username };
