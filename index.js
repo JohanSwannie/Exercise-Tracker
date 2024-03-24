@@ -91,7 +91,7 @@ app.post(
       res.json({
         _id: userFound._id,
         username: userFound.username,
-        description: newExercise.description,
+        description: newExercise.description.toString(),
         duration: newExercise.duration,
         date: newExercise.date,
       });
