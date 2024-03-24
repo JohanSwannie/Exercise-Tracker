@@ -78,6 +78,11 @@ app.post(
       duration: parseInt(req.body.duration),
       date: req.body.date,
     });
+    newExercise.save((error, exercise) => {
+      if (error) {
+        res.status(500).send("{error:" + error + " }");
+      }
+    });
     if (newExercise.date === "") {
       newExercise.date = new Date().toISOString().substring(0, 10);
     }
@@ -101,41 +106,45 @@ app.post(
   }
 );
 
-let showObj = [];
-
 app.get("/api/users/:_id/logs", (req, res) => {
-  User.findById(req.query.userId, (error, result) => {
-    if (!error) {
-      let logsObj = result;
-      if (req.query.from || req.query.to) {
-        let fromDate = new Date(0);
-        let toDate = new Date();
-        if (req.query.from) {
-          fromDate = new Date(req.query.from);
+  if (req.query.userId) {
+    User.findById(req.query.userId, (error, result) => {
+      if (!error) {
+        let oneUserObj = result;
+        if (req.query.from || req.query.to) {
+          let fromDate = new Date(0);
+          let toDate = new Date();
+          if (req.query.from) {
+            fromDate = new Date(req.query.from);
+          }
+          if (req.query.to) {
+            toDate = new Date(req.query.to);
+          }
+          fromDate = fromDate.getTime();
+          toDate = toDate.getTime();
+          oneUserObj.log = oneUserObj.log.filter((exercise) => {
+            let exerciseDate = new Date(exercise.date).getTime();
+            return exerciseDate >= fromDate && exerciseDate <= toDate;
+          });
         }
-        if (req.query.to) {
-          toDate = new Date(req.query.to);
+        if (req.query.limit) {
+          oneUserObj.log = oneUserObj.log.slice(0, req.query.limit);
         }
-        fromDate = fromDate.getTime();
-        toDate = toDate.getTime();
-        logsObj.log = logsObj.log.filter((exercise) => {
-          let exerciseDate = new Date(exercise.date).getTime();
-          return exerciseDate >= fromDate && exerciseDate <= toDate;
-        });
+        res.json(oneUserObj);
+      } else {
+        res.json("Record NOT FOUND!!!");
       }
-      if (req.query.limit) {
-        logsObj.log = logsObj.log.slice(0, req.query.limit);
+    });
+  } else {
+    User.find((error, result2) => {
+      if (!error) {
+        let allUserObj = result2;
+        res.json(allUserObj);
+      } else {
+        res.json("Error in finding all users!!!");
       }
-      let countObj = {};
-      countObj["count"] = logsObj.log.length;
-      showObj.push(logsObj);
-      showObj.push(countObj);
-      console.log(showObj);
-      res.json(showObj);
-    } else {
-      res.json("Record NOT FOUND!!!");
-    }
-  });
+    });
+  }
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
