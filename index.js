@@ -59,16 +59,11 @@ app.post(
 );
 
 app.get("/api/users", (req, res) => {
-  User.find({}, (error, result) => {
+  User.find((error, result) => {
     if (error) {
-      console.log("Error finding the User!!!");
+      console.log("Error finding the Users!!!");
     } else {
-      let resultArray = [];
-      let resultObj = {};
-      resultObj.username = result.username;
-      resultObj._id = result._id;
-      resultArray.push(resultObj);
-      res.json(resultArray);
+      res.json(result);
     }
   });
 });
@@ -139,7 +134,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
           return {
             description: exercise.description.toString(),
             duration: parseInt(exercise.duration),
-            date: exercise.date.toDateString(),
+            date: new Date(exercise.date).toDateString(),
           };
         });
         userObj.log = result;
