@@ -139,7 +139,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
           return {
             description: exercise.description.toString(),
             duration: Number(exercise.duration),
-            date: exercise.date.toString(),
+            date: exercise.date.toDateString(),
           };
         });
         userObj.log = result;
