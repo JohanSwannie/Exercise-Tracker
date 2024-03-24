@@ -27,6 +27,7 @@ app.get("/", (req, res) => {
 });
 
 let exerciseSchema = new Schema({
+  userId: { type: String, required: true },
   description: { type: String, required: true },
   duration: { type: Number, required: true },
   date: String,
@@ -66,85 +67,60 @@ app.get("/api/users", (req, res) => {
   });
 });
 
-let exerciseObj = {};
-
 app.post(
   "/api/users/:_id/exercises",
   bodyParser.urlencoded({ extended: false }),
   (req, res) => {
-    let inputId = req.params._id;
-    let newExercise = new Exercise({
+    let userId = req.params._id;
+    let exerciseObj = {
+      userId: userId,
       description: req.body.description,
       duration: parseInt(req.body.duration),
-      date: req.body.date,
-    });
-    newExercise.save((error, exercise) => {
-      if (error) {
-        res.status(500).send("{error:" + error + " }");
-      }
-    });
-    if (newExercise.date === "") {
-      newExercise.date = new Date().toISOString().substring(0, 10);
+    };
+    if (req.body.date != "") {
+      exerciseObj.date = new Date(req.body.date).toISOString().substring(0, 10);
     }
-    User.findByIdAndUpdate(
-      inputId,
-      { $push: { log: newExercise } },
-      { new: true },
-      (error, updatedUser) => {
-        if (!error && updatedUser != undefined) {
-          exerciseObj["_id"] = inputId;
-          exerciseObj["username"] = updatedUser.username;
-          exerciseObj["description"] = newExercise.description;
-          exerciseObj["duration"] = newExercise.duration;
-          exerciseObj["date"] = new Date(newExercise.date).toDateString();
-          res.json(exerciseObj);
-        } else {
-          res.json("User to be updated NOT FOUND!");
-        }
+    let newExercise = new Exercise(exerciseObj);
+    User.findById(userId, (error, userFound) => {
+      if (error) {
+        console.log(error);
       }
-    );
+      newExercise.save();
+      res.json({
+        _id: userFound._id,
+        username: userFound.username,
+        description: newExercise.description,
+        duration: newExercise.duration,
+        date: newExercise.date,
+      });
+    });
   }
 );
 
 app.get("/api/users/:_id/logs", (req, res) => {
-  if (req.query.userId) {
-    User.findById(req.query.userId, (error, result) => {
-      if (!error) {
-        let oneUserObj = result;
-        if (req.query.from || req.query.to) {
-          let fromDate = new Date(0);
-          let toDate = new Date();
-          if (req.query.from) {
-            fromDate = new Date(req.query.from);
-          }
-          if (req.query.to) {
-            toDate = new Date(req.query.to);
-          }
-          fromDate = fromDate.getTime();
-          toDate = toDate.getTime();
-          oneUserObj.log = oneUserObj.log.filter((exercise) => {
-            let exerciseDate = new Date(exercise.date).getTime();
-            return exerciseDate >= fromDate && exerciseDate <= toDate;
-          });
-        }
-        if (req.query.limit) {
-          oneUserObj.log = oneUserObj.log.slice(0, req.query.limit);
-        }
-        res.json(oneUserObj);
-      } else {
-        res.json("Record NOT FOUND!!!");
+  let userId = req.params._id;
+  User.findById(userId, (error, userFound) => {
+    if (error) {
+      console.log(error);
+    }
+    let username = userFound.username;
+    userObj = { _id: userFound._id, username: username };
+    Exercise.find({ userId: userId }, (error, exercises) => {
+      if (error) {
+        console.log(error);
       }
+      let result = exercises.map((exercise) => {
+        return {
+          description: exercise.description,
+          duration: exercise.duration,
+          date: exercise.date,
+        };
+      });
+      userObj.log = result;
+      userObj.count = result.length;
+      res.json(userObj);
     });
-  } else {
-    User.find((error, result2) => {
-      if (!error) {
-        let allUserObj = result2;
-        res.json(allUserObj);
-      } else {
-        res.json("Error in finding all users!!!");
-      }
-    });
-  }
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
