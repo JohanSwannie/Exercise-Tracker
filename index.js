@@ -66,7 +66,7 @@ app.get("/api/users", (req, res) => {
       let resultArray = [];
       let resultObj = {};
       resultObj.username = result.username;
-      resultObj.id = result._id;
+      resultObj._id = result._id;
       resultArray.push(resultObj);
       res.json(resultArray);
     }
