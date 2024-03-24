@@ -138,7 +138,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
         let result = exercises.map((exercise) => {
           return {
             description: exercise.description.toString(),
-            duration: Number(exercise.duration),
+            duration: parseInt(exercise.duration),
             date: exercise.date.toDateString(),
           };
         });
