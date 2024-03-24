@@ -60,8 +60,13 @@ app.post(
 
 app.get("/api/users", (req, res) => {
   User.find({}, (error, result) => {
-    if (!error) {
-      res.json([result]);
+    if (error) {
+      console.log("Error finding the User!!!");
+    } else {
+      let resultObj = {};
+      resultObj.username = result.username;
+      resultObj.id = result._id;
+      res.json(resultObj);
     }
   });
 });
