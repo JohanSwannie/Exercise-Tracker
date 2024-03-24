@@ -61,7 +61,7 @@ app.post(
 app.get("/api/users", (req, res) => {
   User.find({}, (error, result) => {
     if (!error) {
-      res.json(result);
+      res.json([result]);
     }
   });
 });
