@@ -132,9 +132,9 @@ app.get("/api/users/:_id/logs", (req, res) => {
         }
         let result = exercises.map((exercise) => {
           return {
-            description: exercise.description.toString(),
-            duration: parseInt(exercise.duration),
-            date: new Date(exercise.date).toDateString(),
+            description: exercise.description,
+            duration: exercise.duration,
+            date: exercise.date,
           };
         });
         userObj.log = result;
